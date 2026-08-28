@@ -53,8 +53,11 @@ export default function LoginFormScreen() {
       
       if (response.ok) {
         console.log('Login successful! Token:', data.token);
-        // router.replace('/dashboard');
         alert('Login Successful!');
+        router.replace({
+          pathname: '/dashboard',
+          params: { email: data.user.email, name: data.user.full_name }
+        });
       } else {
         setErrorMsg(data.error || 'Login failed.');
       }

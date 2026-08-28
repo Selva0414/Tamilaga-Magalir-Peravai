@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, TextInput, Dimensions, KeyboardAvoidingView, Platform, Modal, FlatList, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, TextInput, Dimensions, KeyboardAvoidingView, Platform, Modal, FlatList, TouchableWithoutFeedback, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 
 const { width } = Dimensions.get('window');
 
@@ -91,6 +92,91 @@ const CustomDatePicker = ({ label, value, onChangeText }: any) => {
   return <CustomInput label={label} placeholder="YYYY-MM-DD" icon="calendar-outline" value={value} onChangeText={onChangeText} />;
 };
 
+const Video = Platform.OS === 'web' ? 'video' as any : View;
+const Canvas = Platform.OS === 'web' ? 'canvas' as any : View;
+
+const WebCamera = ({ visible, onCapture, onClose }: any) => {
+  const videoRef = React.useRef<any>(null);
+  const canvasRef = React.useRef<any>(null);
+  const [stream, setStream] = useState<any>(null);
+
+  React.useEffect(() => {
+    if (visible && Platform.OS === 'web' && navigator.mediaDevices) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then((s) => {
+          setStream(s);
+          if (videoRef.current) {
+            videoRef.current.srcObject = s;
+          }
+        })
+        .catch(err => {
+          console.error("Camera error:", err);
+          alert("Could not access camera. Please check permissions.");
+          onClose();
+        });
+    }
+    
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track: any) => track.stop());
+      }
+    };
+  }, [visible]);
+
+  if (!visible || Platform.OS !== 'web') return null;
+
+  const handleCapture = () => {
+    if (videoRef.current && canvasRef.current) {
+      const context = canvasRef.current.getContext('2d');
+      const width = videoRef.current.videoWidth || 300;
+      const height = videoRef.current.videoHeight || 300;
+      canvasRef.current.width = width;
+      canvasRef.current.height = height;
+      
+      context.drawImage(videoRef.current, 0, 0, width, height);
+      const dataUri = canvasRef.current.toDataURL('image/jpeg');
+      onCapture(dataUri);
+      
+      if (stream) {
+        stream.getTracks().forEach((track: any) => track.stop());
+        setStream(null);
+      }
+    }
+  };
+
+  const handleClose = () => {
+    if (stream) {
+      stream.getTracks().forEach((track: any) => track.stop());
+      setStream(null);
+    }
+    onClose();
+  };
+
+  return (
+    <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 1000, alignItems: 'center', justifyContent: 'center' }]}>
+      <Text style={{ color: 'white', marginBottom: 20, fontSize: 18 }}>Web Camera</Text>
+      
+      <Video 
+        ref={videoRef} 
+        autoPlay 
+        playsInline 
+        style={{ width: '80%', maxWidth: 400, aspectRatio: 1, backgroundColor: '#000', borderRadius: 10 }} 
+      />
+      <Canvas ref={canvasRef} style={{ display: 'none' }} />
+      
+      <View style={{ flexDirection: 'row', marginTop: 30, gap: 20 }}>
+        <TouchableOpacity onPress={handleClose} style={{ padding: 15, backgroundColor: '#555', borderRadius: 8, minWidth: 100, alignItems: 'center' }}>
+          <Text style={{ color: 'white', fontWeight: 'bold' }}>Cancel</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity onPress={handleCapture} style={{ padding: 15, backgroundColor: '#8B0000', borderRadius: 8, minWidth: 100, alignItems: 'center' }}>
+          <Text style={{ color: 'white', fontWeight: 'bold' }}>Capture</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
 export default function RegisterScreen() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -111,7 +197,49 @@ export default function RegisterScreen() {
   const [nationality, setNationality] = useState('');
   const [preferredLanguage, setPreferredLanguage] = useState('');
 
+  // Form State - Step 3
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [webCamVisible, setWebCamVisible] = useState(false);
+
   const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      setProfilePhoto(result.assets[0].uri);
+    }
+  };
+
+  const takePhoto = async () => {
+    if (Platform.OS === 'web') {
+      setWebCamVisible(true);
+      return;
+    }
+
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      alert("You've refused to allow this app to access your camera!");
+      return;
+    }
+
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      setProfilePhoto(result.assets[0].uri);
+    }
+  };
 
   const handleNext = async () => {
     setErrorMsg('');
@@ -129,6 +257,8 @@ export default function RegisterScreen() {
     } else if (step === 2) {
       setStep(3);
     } else if (step === 3) {
+      if (loading) return;
+      setLoading(true);
       try {
         const response = await fetch('http://localhost:5000/api/auth/register', {
           method: 'POST',
@@ -144,21 +274,23 @@ export default function RegisterScreen() {
             maritalStatus,
             bloodGroup,
             nationality,
-            preferredLanguage
+            preferredLanguage,
+            profilePhoto
           })
         });
         const data = await response.json();
         
         if (response.ok) {
           console.log('Registered user token:', data.token);
-          alert('Registration Complete!');
-          // router.replace('/dashboard');
+          setStep(4);
         } else {
           setErrorMsg(data.error || 'Registration failed.');
         }
       } catch (err) {
         console.error(err);
         setErrorMsg('Network error. Is the backend server running?');
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -280,6 +412,32 @@ export default function RegisterScreen() {
     </>
   );
 
+  const renderStep4 = () => (
+    <View style={{ alignItems: 'center', paddingVertical: 40 }}>
+      <Ionicons name="checkmark-circle" size={80} color="#2E8B57" style={{ marginBottom: 20 }} />
+      <Text style={[styles.sectionTitle, { textAlign: 'center' }]}>Registration Successful!</Text>
+      <Text style={[styles.sectionSubtitle, { textAlign: 'center', marginBottom: 40 }]}>
+        Your account has been created successfully. Welcome to Magalir Peravai Thilagam!
+      </Text>
+
+      <TouchableOpacity 
+        style={styles.buttonContainer} 
+        activeOpacity={0.8} 
+        onPress={() => router.replace('/login-form')}
+      >
+        <LinearGradient
+          colors={['#8B0000', '#3E0000']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.button}
+        >
+          <Text style={styles.buttonText}>Go to Login</Text>
+          <Ionicons name="log-in-outline" size={20} color="#FFF" style={styles.buttonIcon} />
+        </LinearGradient>
+      </TouchableOpacity>
+    </View>
+  );
+
   const renderStep3 = () => (
     <>
       <Text style={styles.sectionTitle}>Upload Profile Photo</Text>
@@ -290,7 +448,11 @@ export default function RegisterScreen() {
       <View style={styles.photoUploadContainer}>
         <View>
           <View style={styles.photoPlaceholder}>
-            <Ionicons name="person-outline" size={60} color="#D3D3D3" />
+            {profilePhoto ? (
+              <Image source={{ uri: profilePhoto }} style={{ width: 120, height: 120, borderRadius: 60 }} />
+            ) : (
+              <Ionicons name="person-outline" size={60} color="#D3D3D3" />
+            )}
           </View>
           <View style={styles.cameraIconBadge}>
             <Ionicons name="camera" size={20} color="#FFF" />
@@ -298,7 +460,7 @@ export default function RegisterScreen() {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.uploadOptionCard}>
+      <TouchableOpacity style={styles.uploadOptionCard} onPress={takePhoto}>
         <View style={[styles.uploadIconContainer, { backgroundColor: '#F0E6FF' }]}>
           <Ionicons name="aperture-outline" size={24} color="#8B008B" />
         </View>
@@ -308,7 +470,7 @@ export default function RegisterScreen() {
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.uploadOptionCard}>
+      <TouchableOpacity style={styles.uploadOptionCard} onPress={pickImage}>
         <View style={[styles.uploadIconContainer, { backgroundColor: '#FFE6E6' }]}>
           <Ionicons name="images-outline" size={24} color="#8B0000" />
         </View>
@@ -328,14 +490,14 @@ export default function RegisterScreen() {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.buttonContainer} activeOpacity={0.8} onPress={handleNext}>
+      <TouchableOpacity style={styles.buttonContainer} activeOpacity={0.8} onPress={handleNext} disabled={loading}>
         <LinearGradient
           colors={['#8B0000', '#3E0000']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          style={styles.button}
+          style={[styles.button, loading && { opacity: 0.7 }]}
         >
-          <Text style={styles.buttonText}>Continue</Text>
+          <Text style={styles.buttonText}>{loading ? 'Registering...' : 'Continue'}</Text>
         </LinearGradient>
       </TouchableOpacity>
 
@@ -364,8 +526,14 @@ export default function RegisterScreen() {
             {step === 1 && renderStep1()}
             {step === 2 && renderStep2()}
             {step === 3 && renderStep3()}
+            {step === 4 && renderStep4()}
           </View>
         </ScrollView>
+        <WebCamera 
+          visible={webCamVisible} 
+          onCapture={(uri: string) => { setProfilePhoto(uri); setWebCamVisible(false); }} 
+          onClose={() => setWebCamVisible(false)} 
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

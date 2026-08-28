@@ -27,8 +27,29 @@ const initDb = async () => {
         mobile_number VARCHAR(20) UNIQUE NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
+        dob VARCHAR(50),
+        age VARCHAR(10),
+        address TEXT,
+        marital_status VARCHAR(50),
+        blood_group VARCHAR(10),
+        nationality VARCHAR(50),
+        preferred_language VARCHAR(50),
+        profile_photo TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+
+    // Add columns if they don't exist (for existing tables)
+    await pool.query(`
+      ALTER TABLE users 
+      ADD COLUMN IF NOT EXISTS dob VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS age VARCHAR(10),
+      ADD COLUMN IF NOT EXISTS address TEXT,
+      ADD COLUMN IF NOT EXISTS marital_status VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS blood_group VARCHAR(10),
+      ADD COLUMN IF NOT EXISTS nationality VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS preferred_language VARCHAR(50),
+      ADD COLUMN IF NOT EXISTS profile_photo TEXT;
     `);
     console.log('Database initialized: users table ready.');
   } catch (err) {
@@ -42,10 +63,14 @@ initDb();
 
 // Register Endpoint
 app.post('/api/auth/register', async (req, res) => {
-  const { fullName, mobileNumber, email, password } = req.body;
+  const { 
+    fullName, mobileNumber, email, password, 
+    dob, age, address, maritalStatus, bloodGroup, 
+    nationality, preferredLanguage, profilePhoto 
+  } = req.body;
 
   if (!fullName || !mobileNumber || !email || !password) {
-    return res.status(400).json({ error: 'All fields are required.' });
+    return res.status(400).json({ error: 'Core fields are required.' });
   }
 
   try {
@@ -65,8 +90,16 @@ app.post('/api/auth/register', async (req, res) => {
 
     // Insert user
     const result = await pool.query(
-      'INSERT INTO users (full_name, mobile_number, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING id, full_name, email',
-      [fullName, mobileNumber, email, passwordHash]
+      `INSERT INTO users (
+        full_name, mobile_number, email, password_hash, 
+        dob, age, address, marital_status, blood_group, 
+        nationality, preferred_language, profile_photo
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id, full_name, email`,
+      [
+        fullName, mobileNumber, email, passwordHash, 
+        dob, age, address, maritalStatus, bloodGroup, 
+        nationality, preferredLanguage, profilePhoto
+      ]
     );
 
     const user = result.rows[0];
@@ -117,10 +150,37 @@ app.post('/api/auth/login', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.json({ message: 'Login successful', token, user: { id: user.id, full_name: user.full_name, email: user.email } });
+    res.json({ 
+      message: 'Login successful', 
+      token, 
+      user: { 
+        id: user.id, 
+        full_name: user.full_name, 
+        email: user.email,
+        profile_photo: user.profile_photo 
+      } 
+    });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Server error during login.' });
+  }
+});
+
+// Get User Endpoint
+app.get('/api/user/:email', async (req, res) => {
+  const { email } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+    const user = result.rows[0];
+    // Don't send password hash back
+    delete user.password_hash;
+    res.json({ user });
+  } catch (err) {
+    console.error('Fetch user error:', err);
+    res.status(500).json({ error: 'Server error while fetching user data.' });
   }
 });
 
