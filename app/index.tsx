@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Image } from 'expo-image';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import Animated, {
@@ -9,6 +8,7 @@ import Animated, {
   withTiming,
   Easing
 } from 'react-native-reanimated';
+import FlowingConfetti from '../components/FlowingConfetti';
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -16,14 +16,14 @@ export default function SplashScreen() {
 
   useEffect(() => {
     progressAnim.value = withTiming(100, { 
-      duration: 2500, 
+      duration: 4000, 
       easing: Easing.inOut(Easing.ease) 
     });
 
-    // Navigate to onboarding after 2.8 seconds
+    // Navigate to onboarding after 4.3 seconds
     const timer = setTimeout(() => {
       router.replace('/onboarding');
-    }, 2800);
+    }, 4300);
 
     return () => clearTimeout(timer);
   }, [router]);
@@ -39,6 +39,7 @@ export default function SplashScreen() {
       colors={['#3E0000', '#9E1B32']}
       style={styles.container}
     >
+      <FlowingConfetti />
       <View style={styles.borderFrame}>
         
         {/* Main Content (Lamp and Text) */}
@@ -47,7 +48,7 @@ export default function SplashScreen() {
           <Image
             source={require('../assets/images/Screen.png')}
             style={styles.lampImage}
-            contentFit="contain"
+            resizeMode="contain"
           />
           
           {/* Tamil Text added below the lamp */}

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Dimensions, FlatList, ViewToken } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,7 +10,9 @@ import Animated, {
   interpolate,
   Extrapolation,
   interpolateColor,
-  SharedValue
+  SharedValue,
+  withTiming,
+  Easing
 } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
@@ -79,6 +81,23 @@ export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollX = useSharedValue(0);
   const flatListRef = useRef<FlatList>(null);
+  
+  // Transition animation values
+  const fadeAnim = useSharedValue(0);
+  const translateYAnim = useSharedValue(30);
+
+  useEffect(() => {
+    fadeAnim.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.ease) });
+    translateYAnim.value = withTiming(0, { duration: 600, easing: Easing.out(Easing.ease) });
+  }, []);
+
+  const transitionStyle = useAnimatedStyle(() => {
+    return {
+      flex: 1,
+      opacity: fadeAnim.value,
+      transform: [{ translateY: translateYAnim.value }],
+    };
+  });
 
   // Track scroll position for animations
   const onScroll = useAnimatedScrollHandler({
@@ -135,8 +154,9 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
+      <Animated.View style={transitionStyle}>
+        {/* Header */}
+        <View style={styles.header}>
         {currentIndex > 0 ? (
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#3A0000" />
@@ -186,6 +206,7 @@ export default function OnboardingScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }
