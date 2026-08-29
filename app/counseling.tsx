@@ -209,10 +209,13 @@ export default function CounselingScreen() {
                 <Text style={styles.overlapAvatarMoreText}>+42</Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.viewCategoryBtn}>
-              <Text style={styles.viewCategoryText}>View Category</Text>
-              <Ionicons name="arrow-forward" size={14} color="#D81B60" />
-            </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.viewCategoryBtn}
+                onPress={() => router.push({ pathname: '/counseling-categories', params: { name, email } })}
+              >
+                <Text style={styles.viewCategoryText}>View Category</Text>
+                <Ionicons name="arrow-forward" size={14} color="#D81B60" />
+              </TouchableOpacity>
           </View>
         </View>
 
@@ -238,7 +241,10 @@ export default function CounselingScreen() {
             <View style={styles.mentorListInfo}>
               <Text style={styles.mentorListTitle}>{mentor.name}</Text>
               <Text style={styles.mentorListSubtitle}>{mentor.title}</Text>
-              <TouchableOpacity style={styles.bookSessionBtn}>
+              <TouchableOpacity 
+                style={styles.bookSessionBtn}
+                onPress={() => router.push({ pathname: '/mentor-profile', params: { name, email, mentorName: mentor.name } })}
+              >
                 <Text style={styles.bookSessionText}>Book Session</Text>
               </TouchableOpacity>
             </View>

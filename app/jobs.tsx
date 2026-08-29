@@ -151,21 +151,24 @@ export default function JobsScreen() {
           <Text style={styles.sectionTitleSmall}>Quick Access</Text>
         </View>
         <View style={styles.quickAccessRow}>
-          <TouchableOpacity style={styles.quickAccessItem}>
+          <TouchableOpacity style={styles.quickAccessItem} onPress={() => router.push({ pathname: '/intern', params: { name, email } })}>
             <View style={[styles.quickAccessIconBg, { backgroundColor: '#FCE4EC' }]}>
               <Ionicons name="school-outline" size={24} color="#D81B60" />
             </View>
             <Text style={styles.quickAccessText}>Internship</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.quickAccessItem}>
+          <TouchableOpacity style={styles.quickAccessItem} onPress={() => router.push({ pathname: '/ngo-jobs', params: { name, email } })}>
             <View style={[styles.quickAccessIconBg, { backgroundColor: '#F3E5F5' }]}>
               <MaterialCommunityIcons name="account-group" size={24} color="#8E24AA" />
             </View>
             <Text style={styles.quickAccessText}>NGO</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.quickAccessItem}>
+          <TouchableOpacity 
+            style={styles.quickAccessItem} 
+            onPress={() => router.push({ pathname: '/ngo-jobs', params: { name, email } })}
+          >
             <View style={[styles.quickAccessIconBg, { backgroundColor: '#E0F2F1' }]}>
               <MaterialCommunityIcons name="laptop" size={24} color="#00897B" />
             </View>
@@ -176,7 +179,9 @@ export default function JobsScreen() {
         {/* Trending Opportunities */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitleSmall}>Trending Opportunities</Text>
-          <TouchableOpacity><Text style={styles.viewAllText}>View All <Ionicons name="arrow-forward" size={12}/></Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push({ pathname: '/job-category', params: { name, email } })}>
+            <Text style={styles.viewAllText}>View All <Ionicons name="arrow-forward" size={12}/></Text>
+          </TouchableOpacity>
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.trendingScroll} contentContainerStyle={{ paddingHorizontal: 20 }}>

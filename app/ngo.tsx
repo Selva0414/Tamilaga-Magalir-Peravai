@@ -212,7 +212,10 @@ export default function NGOScreen() {
               <Text style={styles.activityMetaText}>{activity.location}</Text>
             </View>
 
-            <TouchableOpacity style={styles.joinActivityButton}>
+            <TouchableOpacity 
+              style={styles.joinActivityButton}
+              onPress={() => router.push({ pathname: '/ngo-activity-details', params: { name, email, activityTitle: activity.title } })}
+            >
               <Text style={styles.joinActivityText}>Join Activity</Text>
             </TouchableOpacity>
           </View>
