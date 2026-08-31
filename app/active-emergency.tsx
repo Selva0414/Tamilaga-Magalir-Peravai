@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2C1B2A', // Dark purpleish background as fallback
   },
   mapOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(44, 27, 42, 0.5)', // Darken the map

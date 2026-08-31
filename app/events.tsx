@@ -148,9 +148,12 @@ export default function EventsScreen() {
               <Text style={styles.featuredPillText}>Featured</Text>
             </View>
             <Text style={styles.featuredTitle}>Annual Empowerment{'\n'}Summit 2026</Text>
-            <TouchableOpacity style={styles.viewDetailsButton}>
-              <Text style={styles.viewDetailsText}>View Details</Text>
-            </TouchableOpacity>
+            <TouchableOpacity 
+                style={styles.viewDetailsButton}
+                onPress={() => router.push({ pathname: '/event-details', params: { name, email, eventTitle: 'Annual Empowerment Summit 2026' } })}
+              >
+                <Text style={styles.viewDetailsText}>View Details</Text>
+              </TouchableOpacity>
           </View>
         </View>
 
@@ -189,7 +192,10 @@ export default function EventsScreen() {
 
               <View style={styles.eventFooter}>
                 <Text style={styles.eventPrice}>{event.price}</Text>
-                <TouchableOpacity style={styles.registerButton}>
+                <TouchableOpacity 
+                  style={styles.registerButton}
+                  onPress={() => router.push({ pathname: '/event-details', params: { name, email, eventTitle: event.title } })}
+                >
                   <Text style={styles.registerButtonText}>Register</Text>
                 </TouchableOpacity>
               </View>

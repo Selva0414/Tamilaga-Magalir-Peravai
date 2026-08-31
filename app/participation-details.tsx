@@ -127,7 +127,7 @@ export default function ParticipationDetailsScreen() {
           <Text style={styles.sectionTitle}>What You'll Learn</Text>
           
           <View style={styles.learnItem}>
-            <Ionicons name="star-circle" size={20} color="#A00B29" style={styles.learnIcon} />
+            <Ionicons name="star" size={20} color="#A00B29" style={styles.learnIcon} />
             <View style={styles.learnTextCont}>
               <Text style={styles.learnTitle}>Foundation of Wealth Building</Text>
               <Text style={styles.learnDesc}>Understanding compounding interest and inflation impact on long-term savings.</Text>
@@ -135,7 +135,7 @@ export default function ParticipationDetailsScreen() {
           </View>
 
           <View style={styles.learnItem}>
-            <Ionicons name="star-circle" size={20} color="#A00B29" style={styles.learnIcon} />
+            <Ionicons name="star" size={20} color="#A00B29" style={styles.learnIcon} />
             <View style={styles.learnTextCont}>
               <Text style={styles.learnTitle}>Diversification Strategies</Text>
               <Text style={styles.learnDesc}>How to balance your portfolio between gold, mutual funds, and fixed deposits.</Text>
@@ -143,7 +143,7 @@ export default function ParticipationDetailsScreen() {
           </View>
 
           <View style={styles.learnItem}>
-            <Ionicons name="star-circle" size={20} color="#A00B29" style={styles.learnIcon} />
+            <Ionicons name="star" size={20} color="#A00B29" style={styles.learnIcon} />
             <View style={styles.learnTextCont}>
               <Text style={styles.learnTitle}>Emergency Fund Planning</Text>
               <Text style={styles.learnDesc}>Creating a safety net for your family during unexpected economic shifts.</Text>
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   bottomHeroOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
     padding: 15,

@@ -154,7 +154,7 @@ export default function TrainingScreen() {
         {/* Explore Categories */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Explore Categories</Text>
-          <TouchableOpacity><Text style={styles.viewAllText}>View All ></Text></TouchableOpacity>
+          <TouchableOpacity><Text style={styles.viewAllText}>View All &gt;</Text></TouchableOpacity>
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll} contentContainerStyle={{ paddingHorizontal: 20 }}>
@@ -172,7 +172,7 @@ export default function TrainingScreen() {
         {/* Featured Courses */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Featured Courses</Text>
-          <TouchableOpacity><Text style={styles.viewAllText}>View All ></Text></TouchableOpacity>
+          <TouchableOpacity><Text style={styles.viewAllText}>View All &gt;</Text></TouchableOpacity>
         </View>
 
         {FEATURED_COURSES.map(course => (
